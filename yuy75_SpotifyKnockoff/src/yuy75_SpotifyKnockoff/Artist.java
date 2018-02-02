@@ -60,6 +60,20 @@ public class Artist {
 		}
 	}
 	public void deleteArtist(String artistID) {
+		String sql = "DELETE FROM spotify_knockoff.artist WHERE artist_id = ?";
+		DbUtilities db = new DbUtilities();
+		try {
+			ResultSet rs = db.getResultSet(sql);
+			while(rs.next()) {
+				this.artistID = rs.getString("artist_id");
+				this.firstName = rs.getString("first_name");
+				this.lastName = rs.getString("last_name");
+				this.bandName = rs.getString("band_name");
+				this.bio = rs.getString("bio");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		
 	}
 

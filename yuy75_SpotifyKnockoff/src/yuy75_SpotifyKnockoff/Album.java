@@ -25,6 +25,8 @@ public class Album {
 		this.pmrcRating = pmrcRating;
 		this.length = length;
 		this.albumID = UUID.randomUUID().toString();
+		albumSongs = new Hashtable<String, Song>();
+		
 		String sql = "INSERT INTO album(album_id,title,release_date,cover_image_path,recording_company_name,number_of_tracks,PMRC_rating,length)";
 		sql += "VALUES ('" + this.albumID + "', '" + this.title + "', '" + this.releaseDate + "', '', '" + this.recordingCompany + "', '" + this.numberOfTracks + "', '" + this.pmrcRating + "'', '" + this.length + "');";
 		
@@ -61,6 +63,24 @@ public class Album {
 		
 	}
 	public void deleteSong(String songID) {
+		albumSongs = new Hashtable<String, Song>();
+		String sql = "DELETE FROM spotify_knockoff.song WHERE artist_id = ?";
+		DbUtilities db = new DbUtilities();
+		try {
+			ResultSet rs = db.getResultSet(sql);
+			while(rs.next()) {
+				this.albumID = rs.getString("album_id");
+				this.title = rs.getString("title");
+				this.releaseDate = rs.getDate("release_date").toString();
+				this.releaseDate = rs.getDate("release_date").toString();
+				this.recordingCompany = rs.getString("recording_company_name");
+				this.length = rs.getDouble("length");
+				this.numberOfTracks = rs.getInt("number_of_tracks");
+				this.pmrcRating = rs.getString("PMRC_rating");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		
 	}
 	public void deleteSong(Song song) {

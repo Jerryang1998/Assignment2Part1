@@ -14,7 +14,6 @@ public class Song {
 	private String filePath;
 	private String releaseDate;
 	private String recordDate;
-	private String albumID;
 	Map<String,Artist> songArtist;
 	
 	public Song(String title, double length, String releaseDate, String recordDate, String albumID) {
@@ -22,11 +21,13 @@ public class Song {
 		this.length = length;
 		this.releaseDate = releaseDate;
 		this.recordDate = recordDate;
-		this.albumID = albumID;
 		this.songID = UUID.randomUUID().toString();
+		
+		songArtist = new Hashtable<String, Artist>();
+		
 		//System.out.println(this.songID);
-		String sql = "INSERT INTO song(song_id, title, length, file_path, release_date, record_date, fk_album_id) ";
-		sql += "VALUES ('" + this.songID + "', '" + this.title + "', '" + this.length + "', '', '" + this.releaseDate + "', '" + this.recordDate + "', '" + this.albumID + "');";
+		String sql = "INSERT INTO song(song_id, title, length, file_path, release_date, record_date) ";
+		sql += "VALUES ('" + this.songID + "', '" + this.title + "', '" + this.length + "', '', '" + this.releaseDate + "', '" + this.recordDate + "');";
 		/*String sql = "INSERT INTO song(song_id, title, length, file_path, release_date, record_date, fk_album_id)";
 		sql += "VALUES (?,?,?,?,?,?,?);";*/
 		//System.out.println(sql);
@@ -55,6 +56,7 @@ public class Song {
 		db = null;
 	}
 	public Song(String songID) {
+		songArtist = new Hashtable<String, Artist>();
 		String sql = "SELECT * FROM song WHERE song_id = '" + songID + "';";
 		//System.out.println(sql);
 		DbUtilities db = new DbUtilities();
@@ -67,7 +69,6 @@ public class Song {
 				this.releaseDate = rs.getDate("release_date").toString();
 				this.recordDate = rs.getDate("record_date").toString();
 				this.length = rs.getDouble("length");
-				this.albumID = rs.getString("fk_album_id");
 				//System.out.println("Song title from database: " + this.title);
 			}
 		} catch (SQLException e) {
@@ -92,9 +93,6 @@ public class Song {
 	public String getRecordDate() {
 		return recordDate;
 	}
-	public String getAlbumID() {
-		return albumID;
-	}
 	public Map<String, Artist> getSongArtist() {
 		return songArtist;
 	}
@@ -102,9 +100,42 @@ public class Song {
 		
 	}
 	public void addArtist(Artist artist) {
+		songArtist.put(artist.getArtistID(), artist);
+		String sql = "INSERT INTO song_artist (fk_song_id,fk_artist_id) VALUES (?, ?);";
+		try {
+			DbUtilities db = new DbUtilities();
+			Connection conn = db.getConn();
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, this.songID);
+			ps.setString(2, artist.getArtistID());
+			ps.executeUpdate();
+			db.closeDbConnection();
+			db = null;
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+		}
 		
 	}
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
 	public void deleteArtist(String artistID) {
+		songArtist = new Hashtable<String, Artist>();
+		String sql = "DELETE FROM spotify_knockoff.song WHERE artist_id = ?";
+		DbUtilities db = new DbUtilities();
+		try {
+			ResultSet rs = db.getResultSet(sql);
+			while(rs.next()) {
+				this.songID = rs.getString("song_id");
+				this.title = rs.getString("title");
+				this.releaseDate = rs.getDate("release_date").toString();
+				this.recordDate = rs.getDate("record_date").toString();
+				this.length = rs.getDouble("length");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		
 	}
 	public void deleteArtist(Artist artist) {
